@@ -1,0 +1,124 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-echo
+  labels:
+    app: service-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-echo
+  template:
+    metadata:
+      labels:
+        app: service-echo
+    spec:
+      containers:
+      - name: main
+        image: kosprov/http-echo-server:3.2.2
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-echo
+  labels:
+    app: service-echo
+spec:
+  type: ClusterIP
+  ports:
+  - name: service-echo-http
+    port: 80
+    targetPort: 3000
+  selector:
+    app: service-echo
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  labels:
+    app: service-echo
+  name: service-echo
+spec:
+  gateways:
+    - mesh
+    - ingress-http
+  hosts:
+    - service-echo.${OKTETO_NAMESPACE}.svc.cluster.local
+    - service-echo-${OKTETO_NAMESPACE}.${OKTETO_SUBDOMAIN}
+    - service-echo.staging
+  http:
+    - match:
+        - gateways:
+            - mesh
+          port: 80
+      name: mesh-to-mesh
+      route:
+        - destination:
+            host: service-echo
+            port:
+              number: 80
+            subset: stable
+          weight: 100
+      timeout: 60s
+    - match:
+        - gateways:
+            - ingress-http
+          port: 80
+      name: ingress-gateway-http-app-service
+      route:
+        - destination:
+            host: service-echo
+            port:
+              number: 80
+            subset: stable
+          weight: 100
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  labels:
+    app: service-echo
+  name: service-echo
+spec:
+  host: service-echo
+  subsets:
+    - labels:
+        app: service-echo
+      name: stable
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        connectTimeout: 20s
+        maxConnections: 1024
+        tcpKeepalive:
+          interval: 75s
+          time: 7200s
+    outlierDetection:
+      baseEjectionTime: 5s
+      consecutive5xxErrors: 100
+      interval: 10s
+      maxEjectionPercent: 100
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  labels:
+    app: service-echo
+  name: service-echo
+spec:
+  endpoints:
+    - address: 191.168.1.255
+  hosts:
+    - service-echo.staging
+  location: MESH_INTERNAL
+  ports:
+    - name: http-app-service
+      number: 80
+      protocol: HTTP
+  resolution: STATIC

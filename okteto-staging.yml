@@ -1,0 +1,15 @@
+namespace: staging
+deploy:
+  - rm -Rf tmp
+  - mkdir tmp
+  - kubectl apply -f k8s/staging-config.yaml
+  - kubectl apply -f k8s/service-a-nginx.yaml
+  - envsubst < k8s/service-b.yaml > tmp/service-b.yaml
+  - kubectl apply -f tmp/service-b.yaml
+  - kubectl wait --for=condition=available deployment -l app=service-b --timeout=90s
+  - envsubst < k8s/service-echo.yaml > tmp/service-echo.yaml
+  - kubectl apply -f tmp/service-echo.yaml
+  - kubectl wait --for=condition=available deployment -l app=service-echo --timeout=90s
+  - envsubst < k8s/service-a.yaml > tmp/service-a.yaml
+  - kubectl apply -f tmp/service-a.yaml
+  - kubectl wait --for=condition=available deployment -l app=service-a --timeout=90s

@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-a
+  labels:
+    app: service-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-a
+  template:
+    metadata:
+      labels:
+        app: service-a
+    spec:
+      containers:
+      - name: main
+        image: nginx:1.17.6
+        volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+          - name: static-curl
+            mountPath: /usr/local/bin/curl
+            subPath: curl
+      initContainers:
+        - name: setup-static-curl  # make curl available in main container
+          image: tarampampam/curl:7.86.0-alpine
+          command: [cp, /bin/curl, /export/curl]
+          volumeMounts:
+            - name: static-curl
+              mountPath: /export
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: service-a-nginx
+        - name: static-curl
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-a
+  labels:
+    app: service-a
+spec:
+  type: ClusterIP
+  ports:
+  - name: service-a-http
+    port: 80
+    targetPort: 80
+  selector:
+    app: service-a
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  labels:
+    app: service-a
+  name: service-a
+spec:
+  gateways:
+    - mesh
+    - ingress-http
+  hosts:
+    - service-a.${OKTETO_NAMESPACE}.svc.cluster.local
+    - service-a-${OKTETO_NAMESPACE}.${OKTETO_SUBDOMAIN}
+    - service-a.staging
+  http:
+    - match:
+        - gateways:
+            - mesh
+          port: 80
+      name: mesh-to-mesh
+      route:
+        - destination:
+            host: service-a
+            port:
+              number: 80
+            subset: stable
+          weight: 100
+      timeout: 60s
+    - match:
+        - gateways:
+            - ingress-http
+          port: 80
+      name: ingress-gateway-http-app-service
+      route:
+        - destination:
+            host: service-a
+            port:
+              number: 80
+            subset: stable
+          weight: 100
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  labels:
+    app: service-a
+  name: service-a
+spec:
+  host: service-a
+  subsets:
+    - labels:
+        app: service-a
+      name: stable
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        connectTimeout: 20s
+        maxConnections: 1024
+        tcpKeepalive:
+          interval: 75s
+          time: 7200s
+    outlierDetection:
+      baseEjectionTime: 5s
+      consecutive5xxErrors: 100
+      interval: 10s
+      maxEjectionPercent: 100
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  labels:
+    app: service-a
+  name: service-a
+spec:
+  endpoints:
+    - address: 191.168.1.255
+  hosts:
+    - service-a.staging
+  location: MESH_INTERNAL
+  ports:
+    - name: http-app-service
+      number: 80
+      protocol: HTTP
+  resolution: STATIC
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Sidecar
+metadata:
+  labels:
+    app: service-a
+  name: service-a
+spec:
+  egress:
+    - hosts:
+        - ${OKTETO_NAMESPACE}/service-b.${OKTETO_NAMESPACE}.svc.cluster.local
+        - ${OKTETO_NAMESPACE}/service-b.staging
+        - ${OKTETO_NAMESPACE}/service-echo.${OKTETO_NAMESPACE}.svc.cluster.local
+        - ${OKTETO_NAMESPACE}/service-echo.staging
+  workloadSelector:
+    labels:
+      app: service-a

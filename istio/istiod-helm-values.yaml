@@ -1,0 +1,20 @@
+---
+meshConfig:
+  outboundTrafficPolicy:
+    mode: "REGISTRY_ONLY"
+  enableTracing: false
+  defaultConfig:
+    holdApplicationUntilProxyStarts: true
+    terminationDrainDuration: 5s
+    proxyMetadata:
+      ISTIO_META_DNS_CAPTURE: "true"
+      ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+      EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
+pilot:
+  env:
+    PILOT_PUSH_THROTTLE: 20
+    PILOT_DEBOUNCE_AFTER: 500ms
+  autoscaleMin: 2
+  autoscaleMax: 4
+istio_cni:
+  enabled: false
