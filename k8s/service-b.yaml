@@ -17,7 +17,7 @@ data:
 
         location / {
           add_header Content-Type text/plain;
-          return 200 'this is service-b\n';
+          return 200 'this is ${OKTETO_NAMESPACE}/service-b\n';
         }
       }
     }

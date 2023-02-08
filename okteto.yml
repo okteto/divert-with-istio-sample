@@ -1,0 +1,14 @@
+deploy:
+  commands:
+    - rm -Rf tmp
+    - mkdir tmp
+    - kubectl apply -f k8s/staging-config.yaml
+    - envsubst < k8s/service-b.yaml > tmp/service-b.yaml
+    - kubectl apply -f tmp/service-b.yaml
+    - kubectl wait --for=condition=available deployment -l app=service-b --timeout=90s
+  divert:
+    driver: istio
+    namespace: staging
+    service: service-b
+#    virtualServices:
+#      - service-b
