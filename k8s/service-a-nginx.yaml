@@ -25,10 +25,10 @@ data:
           proxy_pass http://service-b.staging;
         }
 
-        location /call-echo {
+        location /call-c {
           proxy_http_version 1.1;
           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_pass http://service-echo.staging;
+          proxy_pass http://service-c.staging;
         }
       }
     }

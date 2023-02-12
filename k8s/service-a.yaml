@@ -154,8 +154,8 @@ spec:
     - hosts:
         - ${OKTETO_NAMESPACE}/service-b.${OKTETO_NAMESPACE}.svc.cluster.local
         - ${OKTETO_NAMESPACE}/service-b.staging
-        - ${OKTETO_NAMESPACE}/service-echo.${OKTETO_NAMESPACE}.svc.cluster.local
-        - ${OKTETO_NAMESPACE}/service-echo.staging
+        - ${OKTETO_NAMESPACE}/service-c.${OKTETO_NAMESPACE}.svc.cluster.local
+        - ${OKTETO_NAMESPACE}/service-c.staging
   workloadSelector:
     labels:
       app: service-a

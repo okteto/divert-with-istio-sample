@@ -1,77 +1,109 @@
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: service-c-nginx
+  labels:
+    app: service-c
+data:
+  nginx.conf: |
+    events {}
+
+    http {
+      real_ip_header X-Forwarded-For;
+
+      server {
+        listen 80;
+
+        location / {
+          add_header Content-Type text/plain;
+          return 200 'this is ${OKTETO_NAMESPACE}/service-c\n';
+        }
+      }
+    }
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-echo
+  name: service-c
   labels:
-    app: service-echo
+    app: service-c
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: service-echo
+      app: service-c
   template:
     metadata:
       labels:
-        app: service-echo
+        app: service-c
     spec:
       containers:
       - name: main
-        image: kosprov/http-echo-server:3.2.2
+        image: nginx:1.17.6
+        volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: service-c-nginx
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: service-echo
+  name: service-c
   labels:
-    app: service-echo
+    app: service-c
 spec:
   type: ClusterIP
   ports:
-  - name: service-echo-http
+  - name: service-c-http
     port: 80
-    targetPort: 3000
+    targetPort: 80
   selector:
-    app: service-echo
+    app: service-c
 
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   labels:
-    app: service-echo
-  name: service-echo
+    app: service-c
+  name: service-c
 spec:
   gateways:
     - mesh
     - ingress-http
   hosts:
-    - service-echo.${OKTETO_NAMESPACE}.svc.cluster.local
-    - service-echo-${OKTETO_NAMESPACE}.${OKTETO_SUBDOMAIN}
-    - service-echo.staging
+    - service-c.${OKTETO_NAMESPACE}.svc.cluster.local
+    - service-c-${OKTETO_NAMESPACE}.${OKTETO_SUBDOMAIN}
+    - service-c.staging
   http:
     - match:
-        - gateways:
-            - mesh
-          port: 80
+      - gateways:
+          - mesh
+        port: 80
       name: mesh-to-mesh
       route:
         - destination:
-            host: service-echo
+            host: service-c.${OKTETO_NAMESPACE}.svc.cluster.local
             port:
               number: 80
             subset: stable
           weight: 100
       timeout: 60s
-    - match:
-        - gateways:
-            - ingress-http
-          port: 80
-      name: ingress-gateway-http-app-service
+    - name: ingress-gateway-http-app-service
+      match:
+      - gateways:
+          - ingress-http
+        port: 80
       route:
         - destination:
-            host: service-echo
+            host: service-c.${OKTETO_NAMESPACE}.svc.cluster.local
             port:
               number: 80
             subset: stable
@@ -82,13 +114,13 @@ apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   labels:
-    app: service-echo
-  name: service-echo
+    app: service-c
+  name: service-c
 spec:
-  host: service-echo
+  host: service-c
   subsets:
     - labels:
-        app: service-echo
+        app: service-c
       name: stable
   trafficPolicy:
     connectionPool:
@@ -109,13 +141,13 @@ apiVersion: networking.istio.io/v1alpha3
 kind: ServiceEntry
 metadata:
   labels:
-    app: service-echo
-  name: service-echo
+    app: service-c
+  name: service-c
 spec:
   endpoints:
     - address: 191.168.1.255
   hosts:
-    - service-echo.staging
+    - service-c.staging
   location: MESH_INTERNAL
   ports:
     - name: http-app-service

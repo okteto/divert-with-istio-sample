@@ -7,9 +7,9 @@ deploy:
   - envsubst < k8s/service-b.yaml > tmp/service-b.yaml
   - kubectl apply -f tmp/service-b.yaml
   - kubectl wait --for=condition=available deployment -l app=service-b --timeout=90s
-  - envsubst < k8s/service-echo.yaml > tmp/service-echo.yaml
-  - kubectl apply -f tmp/service-echo.yaml
-  - kubectl wait --for=condition=available deployment -l app=service-echo --timeout=90s
+  - envsubst < k8s/service-c.yaml > tmp/service-c.yaml
+  - kubectl apply -f tmp/service-c.yaml
+  - kubectl wait --for=condition=available deployment -l app=service-c --timeout=90s
   - envsubst < k8s/service-a.yaml > tmp/service-a.yaml
   - kubectl apply -f tmp/service-a.yaml
   - kubectl wait --for=condition=available deployment -l app=service-a --timeout=90s
