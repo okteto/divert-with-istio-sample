@@ -33,19 +33,32 @@ okteto ctx use https://okteto.<<okteto-subdomain>>
 okteto kubeconfig
 ```
 
-### Deploy services
+### Deploy services in staging
 
-Then, run `okteto deploy -f okteto-staging.yml --var OKTETOSUBDOMAIN=<<your-okteto-subdomain>>` to deploy the application in the `staging` namespace.
+Then, run `okteto -n staging deploy -f okteto-staging.yml --var OKTETO_SUBDOMAIN=<<your-okteto-subdomain>>` to deploy the application in the `staging` namespace.
+
 ### Test services
 
 ```
-# Ingress endpoints
-curl -k https://service-a-<<okteto-namespace>>.<<okteto-subdomain>>/
-curl -k https://service-b-<<okteto-namespace>>.<<okteto-subdomain>>/
-curl -k https://service-echo-<<okteto-namespace>>.<<okteto-subdomain>>/
-curl -k https://service-a-<<okteto-namespace>>.<<okteto-subdomain>>/call-b
-curl -k https://service-a-<<okteto-namespace>>.<<okteto-subdomain>>/call-echo
+curl -k https://service-a-staging.<<okteto-subdomain>>/
+curl -k https://service-b-staging.<<okteto-subdomain>>/
+curl -k https://service-c-staging.<<okteto-subdomain>>/
+curl -k https://service-a-staging.<<okteto-subdomain>>/call-b
+curl -k https://service-a-staging.<<okteto-subdomain>>/call-c
+```
 
-# curl service-b from inside service-a via the Istio sidecar (service-b.staging service entry)
-kubectl -n staging exec svc/service-a -- curl -s http://service-b.staging/
+### Divert service-b in your personal namespace
+
+Run `okteto deploy --var OKTETO_SUBDOMAIN=<<your-okteto-subdomain>>`.
+
+### Test services
+
+```
+curl -k https://service-a-<<your-namespace>>.<<okteto-subdomain>>/
+curl -k https://service-b-<<your-namespace>>.<<okteto-subdomain>>/
+curl -k https://service-c-<<your-namespace>>.<<okteto-subdomain>>/
+curl -k https://service-a-<<your-namespace>>.<<okteto-subdomain>>/call-b
+curl -k https://service-a-<<your-namespace>>.<<okteto-subdomain>>/call-c
+curl -k https://service-a-staging.<<okteto-subdomain>>/call-b
+curl -k https://service-a-staging.<<okteto-subdomain>>/call-c
 ```
