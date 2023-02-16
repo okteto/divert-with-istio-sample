@@ -80,7 +80,7 @@ spec:
     - ingress-http
   hosts:
     - service-c.${OKTETO_NAMESPACE}.svc.cluster.local
-    - service-c-${OKTETO_NAMESPACE}.${OKTETO_SUBDOMAIN}
+    - service-c-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}
     - service-c.staging
   http:
     - match:

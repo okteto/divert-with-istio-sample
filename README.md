@@ -35,7 +35,7 @@ okteto kubeconfig
 
 ### Deploy services in staging
 
-Then, run `okteto -n staging deploy -f okteto-staging.yml --var OKTETO_SUBDOMAIN=<<your-okteto-subdomain>>` to deploy the application in the `staging` namespace.
+Then, run `okteto deploy -f okteto-staging.yml` to deploy the application in the `staging` namespace.
 
 ### Test services
 
@@ -49,7 +49,7 @@ curl -k https://service-a-staging.<<okteto-subdomain>>/call-c
 
 ### Divert service-b in your personal namespace
 
-Run `okteto deploy --var OKTETO_SUBDOMAIN=<<your-okteto-subdomain>>`.
+Run `okteto deploy`.
 
 ### Test services
 

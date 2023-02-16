@@ -67,7 +67,7 @@ spec:
     - ingress-http
   hosts:
     - service-a.${OKTETO_NAMESPACE}.svc.cluster.local
-    - service-a-${OKTETO_NAMESPACE}.${OKTETO_SUBDOMAIN}
+    - service-a-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}
     - service-a.staging
   http:
     - match:
