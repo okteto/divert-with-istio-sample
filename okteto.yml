@@ -10,5 +10,5 @@ deploy:
     driver: istio
     namespace: staging
     service: service-b
-#    virtualServices:
-#      - service-b
+    virtualServices:
+      - service-a
