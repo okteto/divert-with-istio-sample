@@ -81,7 +81,7 @@ spec:
   hosts:
     - service-c.${OKTETO_NAMESPACE}.svc.cluster.local
     - service-c-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}
-    - service-c.staging
+    - service-c.${OKTETO_NAMESPACE}
   http:
     - match:
       - gateways:

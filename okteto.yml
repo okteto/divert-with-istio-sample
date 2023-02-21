@@ -10,5 +10,9 @@ deploy:
     driver: istio
     namespace: staging
     service: service-b
-    virtualServices:
-      - service-a
+    virtualService: service-b
+    hosts:
+      - virtualService: service-a
+        namespace: staging
+      - virtualService: service-b
+        namespace: ${OKTETO_NAMESPACE}
