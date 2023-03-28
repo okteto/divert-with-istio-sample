@@ -10,9 +10,9 @@ The admin of the cluster must run the following commands to install Istio in the
 
 ```
 helm install --namespace istio-system --create-namespace istio-base istio/base --version 1.13.8 --wait
-helm install --namespace istio-system istiod istio/istiod --values istio/istiod-helm-values.yaml --version 1.13.8 --wait
 kubectl create namespace istio-ingress
 kubectl label namespace istio-ingress istio-injection=enabled
+helm install --namespace istio-system istiod istio/istiod --values istio/istiod-helm-values.yaml --version 1.13.8 --wait
 helm install --namespace istio-ingress istio-ingress istio/gateway --values istio/istio-ingress-helm-values.yaml --version 1.13.8 --wait
 ```
 
