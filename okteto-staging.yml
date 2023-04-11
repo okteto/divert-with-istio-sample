@@ -1,8 +1,7 @@
-namespace: staging
 deploy:
   - rm -Rf tmp
   - mkdir tmp
-  - kubectl apply -f k8s/staging-config.yaml
+  - kubectl apply -f k8s/namespace-config.yaml
   - kubectl apply -f k8s/service-a-nginx.yaml
   - envsubst < k8s/service-b.yaml > tmp/service-b.yaml
   - kubectl apply -f tmp/service-b.yaml

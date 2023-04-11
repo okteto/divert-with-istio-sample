@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: service-a
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
       - name: main
@@ -24,6 +25,14 @@ spec:
           - name: static-curl
             mountPath: /usr/local/bin/curl
             subPath: curl
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "10m"
+          limits:
+            memory: "500Mi"
+            cpu: "100m"
+
       initContainers:
         - name: setup-static-curl  # make curl available in main container
           image: tarampampam/curl:7.86.0-alpine

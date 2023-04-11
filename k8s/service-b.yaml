@@ -38,6 +38,7 @@ spec:
     metadata:
       labels:
         app: service-b
+        sidecar.istio.io/inject: "true"
     spec:
       containers:
       - name: main
@@ -46,6 +47,13 @@ spec:
           - name: nginx-config
             mountPath: /etc/nginx/nginx.conf
             subPath: nginx.conf
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "10m"
+          limits:
+            memory: "500Mi"
+            cpu: "100m"
       volumes:
         - name: nginx-config
           configMap:

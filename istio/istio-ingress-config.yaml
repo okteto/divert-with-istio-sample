@@ -3,12 +3,12 @@ kind: Ingress
 metadata:
   name: istio-ingress
 spec:
-  ingressClassName: nginx
+  ingressClassName: okteto-nginx
   tls:
   - hosts:
-      - '*.<<okteto-subdomain>>'
+      - '*.pablo.dev.okteto.net'
   rules:
-  - host: '*.<<okteto-subdomain>>'
+  - host: '*.pablo.dev.okteto.net'
     http:
       paths:
       - path: /

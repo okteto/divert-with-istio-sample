@@ -1,4 +1,12 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+spec:
+  mtls:
+    mode: STRICT
 ---
+
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
@@ -13,12 +21,3 @@ spec:
         name: http
         number: 80
         protocol: HTTP
-
----
-apiVersion: security.istio.io/v1beta1
-kind: PeerAuthentication
-metadata:
-  name: default
-spec:
-  mtls:
-    mode: STRICT
