@@ -9,10 +9,12 @@ The following diagram explains the architectture of the application we will be u
 The admin of the cluster must run the following commands to install Istio in the Okteto cluster:
 
 ```
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+helm repo update
 helm install --namespace istio-system --create-namespace istio-base istio/base --version 1.13.8 --wait
 kubectl create namespace istio-ingress
 kubectl label namespace istio-ingress istio-injection=enabled
-helm install --namespace istio-system istiod istio/istiod --values istio/istiod-helm-values.yaml --version 1.13.8 --wait
+helm install --namespace istio-system istiod istio/istiod --values istio/istiod-helm-values.yaml --wait
 helm install --namespace istio-ingress istio-ingress istio/gateway --values istio/istio-ingress-helm-values.yaml --version 1.13.8 --wait
 ```
 
