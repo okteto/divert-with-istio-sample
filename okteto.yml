@@ -1,18 +1,29 @@
 deploy:
+  remote: true
   commands:
     - rm -Rf tmp
     - mkdir tmp
     - kubectl apply -f k8s/staging-config.yaml
-    - envsubst < k8s/service-b.yaml > tmp/service-b.yaml
-    - kubectl apply -f tmp/service-b.yaml
+    - envsubst < k8s/service-b.yaml | kubectl apply -f -
+    - kubectl rollout restart deployment -l app=service-b
     - kubectl wait --for=condition=available deployment -l app=service-b --timeout=90s
   divert:
     driver: istio
-    namespace: staging
-    service: service-b
-    virtualService: service-b
+    virtualServices:
+      - name: service-b
+        namespace: staging
     hosts:
       - virtualService: service-a
         namespace: staging
-      - virtualService: service-b
-        namespace: ${OKTETO_NAMESPACE}
+
+test:
+  endpoints:
+    image: alpine/curl:latest
+    commands:
+      - curl -s -k https://service-a-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}
+      - curl -s -k https://service-b-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}
+      - curl -s -k https://service-c-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}
+      - curl -s -k https://service-a-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}/call-b
+      - curl -s -k https://service-a-${OKTETO_NAMESPACE}.${OKTETO_DOMAIN}/call-c
+      - curl -s -k https://service-a-staging.${OKTETO_DOMAIN}/call-b
+      - curl -s -k https://service-a-staging.${OKTETO_DOMAIN}/call-c

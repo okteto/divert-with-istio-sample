@@ -1,15 +1,25 @@
-namespace: staging
 deploy:
-  - rm -Rf tmp
-  - mkdir tmp
-  - kubectl apply -f k8s/staging-config.yaml
-  - kubectl apply -f k8s/service-a-nginx.yaml
-  - envsubst < k8s/service-b.yaml > tmp/service-b.yaml
-  - kubectl apply -f tmp/service-b.yaml
-  - kubectl wait --for=condition=available deployment -l app=service-b --timeout=90s
-  - envsubst < k8s/service-c.yaml > tmp/service-c.yaml
-  - kubectl apply -f tmp/service-c.yaml
-  - kubectl wait --for=condition=available deployment -l app=service-c --timeout=90s
-  - envsubst < k8s/service-a.yaml > tmp/service-a.yaml
-  - kubectl apply -f tmp/service-a.yaml
-  - kubectl wait --for=condition=available deployment -l app=service-a --timeout=90s
+  remote: true
+  commands:
+    - rm -Rf tmp
+    - mkdir tmp
+    - kubectl apply -f k8s/staging-config.yaml
+    - kubectl apply -f k8s/service-a-nginx.yaml
+    - envsubst < k8s/service-b.yaml | kubectl apply -f -
+    - kubectl rollout restart deployment -l app=service-b
+    - kubectl wait --for=condition=available deployment -l app=service-b --timeout=90s
+    - envsubst < k8s/service-c.yaml | kubectl apply -f -
+    - kubectl rollout restart deployment -l app=service-c
+    - kubectl wait --for=condition=available deployment -l app=service-c --timeout=90s
+    - envsubst < k8s/service-a.yaml | kubectl apply -f -
+    - kubectl rollout restart deployment -l app=service-a
+    - kubectl wait --for=condition=available deployment -l app=service-a --timeout=90s
+test:
+  endpoints:
+    image: alpine/curl:latest
+    commands:
+      - curl -s -k https://service-a-staging.${OKTETO_DOMAIN}
+      - curl -s -k https://service-b-staging.${OKTETO_DOMAIN}
+      - curl -s -k https://service-c-staging.${OKTETO_DOMAIN}
+      - curl -s -k https://service-a-staging.${OKTETO_DOMAIN}/call-b
+      - curl -s -k https://service-a-staging.${OKTETO_DOMAIN}/call-c
